@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "knickerbocker/version"
+require_relative "nicker_pocker/version"
 
-module Knickerbocker
+module NickerPocker
   class Error < StandardError; end
   # Your code goes here...
 end

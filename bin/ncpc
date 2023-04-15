@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'nicker_pocker/version'
+require 'nicker_pocker'
+require 'fileutils'
+require 'csv'
+
+Version = NickerPocker::VERSION
+
+# コマンド定義
+ARGV.options do |opt|
+
+  # バージョン
+  opt.on('-v', '--version') do
+    puts opt.ver
+  end
+
+  opt.parse!
+end

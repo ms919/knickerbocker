@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require_relative "lib/knickerbocker/version"
+require_relative "lib/nicker_pocker/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "knickerbocker"
-  spec.version = Knickerbocker::VERSION
+  spec.name = "nicker_pocker"
+  spec.version = NickerPocker::VERSION
   spec.authors = ["ms919"]
   spec.email = ["koushien.gem@gmail.com"]
 
   spec.summary = "Provides commands to create table definitions"
-  spec.homepage = "https://github.com/ms919/knickerbocker"
+  spec.homepage = "https://github.com/ms919/nicker_pocker"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.3.7"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/ms919/knickerbocker"
-  spec.metadata["changelog_uri"] = "https://github.com/ms919/knickerbocker/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/ms919/nicker_pocker"
+  spec.metadata["changelog_uri"] = "https://github.com/ms919/nicker_pocker/blob/main/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
