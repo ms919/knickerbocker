@@ -3,10 +3,10 @@
 require 'optparse'
 require 'nicker_pocker/version'
 require 'nicker_pocker'
-require 'fileutils'
-require 'csv'
 
 Version = NickerPocker::VERSION
+
+options = {}
 
 # コマンド定義
 ARGV.options do |opt|
@@ -18,3 +18,6 @@ ARGV.options do |opt|
 
   opt.parse!
 end
+
+# オプションに基づいて処理を実行
+NickerPocker::Command.exec(options)
