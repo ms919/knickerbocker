@@ -12,13 +12,13 @@ module NickerPocker
     end
 
     # 各設定をセット
-    def initialize(options = {})
+    def initialize(options)
       @options = options
 
       # 初期値設定
-      @options[:input] = './db/migrate/'
-      @options[:output] = './nicker_pocker/'
-      @options[:format] = :csv
+      @options[:input]  ||= './db/migrate/'
+      @options[:output] ||= './nicker_pocker/'
+      @options[:format] ||= :csv
     end
 
     # 実行
@@ -56,7 +56,7 @@ module NickerPocker
     #
     # @return [Array]
     def read_data
-      arr = []
+      data_list = []
       version = 0
       Dir::foreach(@options[:input]) do |file_name|
         next if skip_files?(file_name)
@@ -64,15 +64,13 @@ module NickerPocker
         version = file_version if version < file_version
 
         File.open(@options[:input] + file_name) do |f|
-          arr.push(f.readlines.each(&:strip!))
+          data_list.push(f.readlines.each(&:strip!))
         end
       end
 
       [
-        version.to_s,
-        arr.flatten.map do |row|
-          row if /^t\..*|^def\s.*/.match(row)
-        end.compact
+        data_list,
+        version.to_s
       ]
     end
 
@@ -86,9 +84,9 @@ module NickerPocker
 
     # 出力
     #
-    # @params [String] version
     # @params [Array] data_list
-    def output(version, data_list)
+    # @params [String] version
+    def output(data_list, version)
       # ディレクトリ作成（なければ）
       FileUtils.mkdir_p(@options[:output])
 
