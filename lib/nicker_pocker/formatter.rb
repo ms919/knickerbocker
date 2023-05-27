@@ -2,8 +2,8 @@
 
 module NickerPocker
   class Formatter
-    TABLE_HEADER_LIST = %w(table_name  table_name(jp)  created_by created_date updated_by updated_date table_memo)
-    COLMN_HEADER_LIST = %w(PK FK index unique type column_name  null limit default column_name(jp)  column_memo)
+    TABLE_HEADER_LIST = %W(table_name #{nil} #{nil} table_name(jp) #{nil} #{nil} created_by created_date updated_by updated_date table_memo)
+    COLMN_HEADER_LIST = %W(PK FK index unique type column_name #{nil} null limit default column_name(jp) #{nil} column_memo)
 
     ADD_METHODS_LIST = %i(create_table)
     UPDATE_METHODS_LIST = %i()
@@ -38,12 +38,14 @@ module NickerPocker
     # @params [Hash] groups
     # @return [Array]
     def formatted_list(groups)
+      # temp_formatted_list = []
       formatted_list = []
 
       MIGRATE_METHODS.each do |method_name|
         groups.each do |table_data|
           formatted_list.push(format(table_data, method_name))
         end
+        # formatted_list.push(temp_formatted_list)
       end
 
       formatted_list
@@ -78,28 +80,45 @@ module NickerPocker
       result_list = []
 
       columns_list.each do |column|
-        column_data_list = column.split(/\s|,/)
+        column_data_list = column.split(/\s|,|=>/)
         column_data_list.delete('')
 
         column_type = column_data_list[0].sub(/^t\./, '')
-        column_name = column_data_list[1]&.sub(/^:/, '')
 
         if column_type == 'timestamps'
-          timestamps_list = add_timestamps(column_data_list)
+          timestamps_list = get_timestamps(column_data_list[1..])
           result_list.push(*timestamps_list)
           next
         end
 
-        result_list.push(%W(\s \s \s \s #{column_type} #{column_name}))
+        column_name = column_data_list[1]&.sub(/^:/, '')
+        column_null, column_limit, column_default, column_comment = get_constraints(column_data_list[2..])
+
+        result_list.push(%W(#{nil} #{nil} #{nil} #{nil} #{column_type} #{column_name} #{nil} #{column_null} #{column_limit} #{column_default} #{column_comment}))
       end
 
       result_list
     end
 
-    def add_timestamps(timestamps_column_list)
+    def get_timestamps(timestamps_left_list)
       timestamps_list = []
-      timestamps_list.push(%W(\s \s \s \s timestamp created_at))
-      timestamps_list.push(%W(\s \s \s \s timestamp updated_at))
+
+      column_null, column_limit, column_default, column_comment = get_constraints(timestamps_left_list)
+
+      timestamps_list.push(%W(#{nil} #{nil} #{nil} #{nil} timestamp created_at #{nil} #{column_null} #{column_limit} #{column_default} #{column_comment}))
+      timestamps_list.push(%W(#{nil} #{nil} #{nil} #{nil} timestamp updated_at #{nil} #{column_null} #{column_limit} #{column_default} #{column_comment}))
+    end
+
+    # 各制約
+    #
+    # @params [Array] left_list
+    def get_constraints(left_list)
+      return if left_list.nil? || left_list.empty?
+
+      temp_constraint_list = left_list.map { |column_data| column_data.gsub(/:|'/, '') }
+      constraints = temp_constraint_list.each_slice(2).to_h
+
+      %W(#{constraints['null']} #{constraints['limit']} #{constraints['default']} #{constraints['comment']})
     end
 
     def update
