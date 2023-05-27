@@ -5,7 +5,7 @@ require 'csv'
 
 module NickerPocker
 
-  MIGRATE_METHODS = %w(create_table)
+  MIGRATE_METHODS = %i(create_table)
 
   class Command
     class << self
@@ -50,7 +50,8 @@ module NickerPocker
       temp_data_list.flatten!.select! { |row| target_data?(row) }.compact!
       data_list = necessary_data(temp_data_list)
 
-      # TODO：NickerPocker::MigrateMethodsに渡して整形
+      groups = Grouping.exec(data_list)
+      Formatter.exec(groups)
     end
 
     # 対象データ判定
@@ -61,7 +62,7 @@ module NickerPocker
       return true if /^t\..*|^def\s.*/.match(row)
 
       MIGRATE_METHODS.each do |method_name|
-        return true if /#{method_name}/.match(row)
+        return true if /#{method_name.to_s}/.match(row)
       end
 
       false
@@ -94,13 +95,18 @@ module NickerPocker
     # 出力
     #
     # @params [Array] data_list
-    def output(data_list)
+    def output(formatted_list)
       # ディレクトリ作成（なければ）
       FileUtils.mkdir_p(@options[:output])
 
       # csv作成
       CSV.open("#{@options[:output]}table_definition.csv", 'w') do |csv|
-        csv << data_list
+        formatted_list.each do |formatted_table|
+          formatted_table.each do |formatted_row|
+            csv << formatted_row
+          end
+          csv << []
+        end
       end
     end
   end
