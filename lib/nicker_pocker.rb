@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "nicker_pocker/version"
 require_relative 'nicker_pocker/command'
 require_relative 'nicker_pocker/grouping'
 require_relative 'nicker_pocker/formatter'
+require_relative 'nicker_pocker/method_formatter'
 
 module NickerPocker
   class Error < StandardError; end

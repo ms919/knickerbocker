@@ -5,10 +5,6 @@ module NickerPocker
     TABLE_HEADER_LIST = %W(table_name #{nil} #{nil} table_name(jp) #{nil} #{nil} created_by created_date updated_by updated_date table_memo)
     COLMN_HEADER_LIST = %W(PK FK index unique type column_name #{nil} null limit default column_name(jp) #{nil} column_memo)
 
-    ADD_METHODS_LIST = %i(create_table)
-    UPDATE_METHODS_LIST = %i()
-    DELETE_METHODS_LIST = %i()
-
     class << self
       def exec(groups, options = {})
         new(options).run(groups)
@@ -39,21 +35,31 @@ module NickerPocker
     # @return [Array]
     def formatted_list(groups)
       formatted_list = []
+      migrate_method = MethodFormatter.new
 
       groups.each do |table_data|
         formatted_table_list = []
         MIGRATE_METHODS.each do |method_name|
-          temp_formatted_table_list =
-            if method_name == :create_table
-              create_table_format(table_data)
-            # else
-              # column_data = table_data[1][method_name]
-              # format(column_data, method_name, formatted_table_list) if column_data
-            end
+          if method_name == :create_table
+            create_table_formatted_list = create_table_format(table_data)
 
-          formatted_table_list.push(temp_formatted_table_list).compact!
+            formatted_table_list.push(*create_table_formatted_list).compact!
+          else
+            method_data = table_data[1][method_name]
+            next unless method_data
+
+            change_content_list =
+              migrate_method.send(method_name, method_data, formatted_table_list)
+
+            change_content_list.each do |change_contents|
+              index = change_contents.keys.first
+              value = change_contents.values.first
+
+              formatted_table_list[index] = value
+            end
+          end
         end
-        formatted_list.push(formatted_table_list)
+        formatted_list.push(formatted_table_list.compact)
       end
 
       formatted_list
@@ -129,33 +135,6 @@ module NickerPocker
       constraints = temp_constraint_list.each_slice(2).to_h
 
       %W(#{constraints['null']} #{constraints['limit']} #{constraints['default']} #{constraints['comment']})
-    end
-
-    # 整形処理
-    #
-    # @params [Array] column_data
-    # @params [Symbol] method_name
-    # @params [Array] formatted_table_list
-    # @return [Array]
-    def format(column_data, method_name, formatted_table_list)
-      if ADD_METHODS_LIST.include?(method_name)
-        add(column_data, formatted_table_list)
-      elsif UPDATE_METHODS_LIST.include?(method_name)
-        update(column_data, formatted_table_list)
-      elsif DELETE_METHODS_LIST.include?(method_name)
-        delete(column_data, formatted_table_list)
-      end
-    end
-
-    def add
-    end
-
-    def update(column_data, formatted_table_list)
-      # p column_data
-      # p formatted_table_list
-    end
-
-    def delete
     end
   end
 end

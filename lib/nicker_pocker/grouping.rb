@@ -63,10 +63,11 @@ module NickerPocker
       target_method = target_method(data.first).to_sym
       return unless target_method
 
-      arr = data.first.split(/\(|,|\s/)
-      table_name = arr[1].sub(/^:/, '').to_sym
+      method_row = data.first.split(/\(|,|\s/)
+      table_name = method_row[1].sub(/^:/, '').to_sym
+      method_contents = data[1..].map { |content| content.strip.sub(/^:/, '') }
 
-      methods[target_method] = data[1..]
+      methods[target_method] = method_contents
 
       tables[table_name] = methods
       tables

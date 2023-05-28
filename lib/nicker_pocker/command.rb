@@ -5,7 +5,7 @@ require 'csv'
 
 module NickerPocker
 
-  MIGRATE_METHODS = %i(create_table)
+  MIGRATE_METHODS = %i(create_table change_column)
 
   class Command
     class << self
@@ -108,20 +108,18 @@ module NickerPocker
 
     # 出力
     #
-    # @params [Array] data_list
-    def output(formatted_lists)
+    # @params [Array] formatted_list
+    def output(formatted_list)
       # ディレクトリ作成（なければ）
       FileUtils.mkdir_p(@options[:output])
 
       # csv作成
       CSV.open("#{@options[:output]}table_definition.csv", 'w') do |csv|
-        formatted_lists.each do |formatted_list|
-          formatted_list.each do |formatted_table|
-            formatted_table.each do |formatted_row|
-              csv << formatted_row
-            end
-            csv << []
+        formatted_list.each do |formatted_table|
+          formatted_table.each do |formatted_row|
+            csv << formatted_row
           end
+          csv << []
         end
       end
     end
