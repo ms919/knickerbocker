@@ -62,7 +62,7 @@ module NickerPocker
       return true if /^t\..*|^def\s.*/.match(row)
 
       MIGRATE_METHODS.each do |method_name|
-        return true if /#{method_name.to_s}/.match(row)
+        return true if /#{method_name.to_s}\s/.match(row)
       end
 
       false
@@ -74,38 +74,54 @@ module NickerPocker
     # @return [Array]
     def necessary_data(temp_data_list)
       data_list = []
-      methods_contents = []
+      methods_contents_list = []
 
       # 使いやすく整形
       temp_data_list.each do |data|
        if /^def\s.*/.match(data)
-          data_list << methods_contents if methods_contents.any?
-          methods_contents = []
+          data_list << methods_contents_list if methods_contents_list.any?
+          methods_contents_list = []
        end
 
-       methods_contents << data
+       methods_contents_list.push(data)
       end
-      data_list << methods_contents if methods_contents.any?
 
       # 不要データを除外
       data_list.reject! { |data| data.include?('def down') }
-      data_list.map { |data| data.reject { |x| /^def\s.*/.match(x) } }.reject(&:empty?)
+      data_list = data_list.map { |data| data.reject { |x| /^def\s.*/.match(x) } }.reject(&:empty?)
+
+      # グルーピングしやすいように整形
+      # ["change_column :xxx, :name, :string"]
+      # => ["change_column :xxx", " :name", " :string"]
+      pattern = Regexp.new(".*?#{MIGRATE_METHODS.map(&:to_s).join('|')}.*")
+      data_list.each_with_index do |data, index|
+        pattern_match_list = data.map { |content| content.scan(pattern).join.split(',') }.reject(&:empty?)
+
+        if pattern_match_list.first.length > 1
+          data_list.delete_at(index)
+          data_list.push(*pattern_match_list)
+        end
+      end
+
+      data_list
     end
 
     # 出力
     #
     # @params [Array] data_list
-    def output(formatted_list)
+    def output(formatted_lists)
       # ディレクトリ作成（なければ）
       FileUtils.mkdir_p(@options[:output])
 
       # csv作成
       CSV.open("#{@options[:output]}table_definition.csv", 'w') do |csv|
-        formatted_list.each do |formatted_table|
-          formatted_table.each do |formatted_row|
-            csv << formatted_row
+        formatted_lists.each do |formatted_list|
+          formatted_list.each do |formatted_table|
+            formatted_table.each do |formatted_row|
+              csv << formatted_row
+            end
+            csv << []
           end
-          csv << []
         end
       end
     end

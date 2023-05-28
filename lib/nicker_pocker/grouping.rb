@@ -36,8 +36,14 @@ module NickerPocker
 
       groups = {}
       temp_group_list.each do |temp_group|
-        groups[temp_group.keys.first] = {} unless groups[temp_group.keys.first]
-        groups[temp_group.keys.first].merge!(temp_group.values.first)
+        table_name = temp_group.keys.first
+        methods = temp_group.values.first
+        method_name = methods.keys.first
+
+        groups[table_name] = {} unless groups[table_name]
+        groups[table_name][method_name] = [] unless groups[table_name][method_name]
+
+        groups[table_name][method_name].push(methods.values.first)
       end
 
       # 出力対象を絞る
@@ -60,7 +66,7 @@ module NickerPocker
       arr = data.first.split(/\(|,|\s/)
       table_name = arr[1].sub(/^:/, '').to_sym
 
-      methods[target_method.to_sym] = data[1..]
+      methods[target_method] = data[1..]
 
       tables[table_name] = methods
       tables

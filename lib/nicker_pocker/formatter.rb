@@ -38,25 +38,32 @@ module NickerPocker
     # @params [Hash] groups
     # @return [Array]
     def formatted_list(groups)
-      # temp_formatted_list = []
       formatted_list = []
 
-      MIGRATE_METHODS.each do |method_name|
-        groups.each do |table_data|
-          formatted_list.push(format(table_data, method_name))
+      groups.each do |table_data|
+        formatted_table_list = []
+        MIGRATE_METHODS.each do |method_name|
+          temp_formatted_table_list =
+            if method_name == :create_table
+              create_table_format(table_data)
+            # else
+              # column_data = table_data[1][method_name]
+              # format(column_data, method_name, formatted_table_list) if column_data
+            end
+
+          formatted_table_list.push(temp_formatted_table_list).compact!
         end
-        # formatted_list.push(temp_formatted_list)
+        formatted_list.push(formatted_table_list)
       end
 
       formatted_list
     end
 
-    # 整形処理
+    # テーブル作成用に整形した配列を返す
     #
     # @params [Array] table_data
-    # @params [Symbol] method_name
-    # @return [String]
-    def format(table_data, method_name)
+    # @return [Array]
+    def create_table_format(table_data)
       formatted_table_list = []
       # テーブル情報
       formatted_table_list.push(TABLE_HEADER_LIST)
@@ -65,18 +72,17 @@ module NickerPocker
       # カラムヘッダー追加
       formatted_table_list.push(COLMN_HEADER_LIST)
 
-      # メソッドごとの処理
       methods = table_data[1]
+      formatted_column_list = create_table(methods[:create_table].first)
 
-      formatted_column_list = add(methods[method_name]) if ADD_METHODS_LIST.include?(method_name)
-      # update
-      # formatted_column_list = update(formatted_column_list) if UPDATE_METHODS_LIST.include?(method_name)
-      # delete
-      # delete(formatted_column_list) if DELETE_METHODS_LIST.include?(method_name)
       formatted_table_list.push(*formatted_column_list)
     end
 
-    def add(columns_list)
+    # テーブル作成処理
+    #
+    # @params [Array] columns_list
+    # @return [Array]
+    def create_table(columns_list)
       result_list = []
 
       columns_list.each do |column|
@@ -100,6 +106,10 @@ module NickerPocker
       result_list
     end
 
+    # 作成・更新日時カラム追加処理
+    #
+    # @params [Array] timestamps_left_list
+    # @return [Array]
     def get_timestamps(timestamps_left_list)
       timestamps_list = []
 
@@ -121,7 +131,28 @@ module NickerPocker
       %W(#{constraints['null']} #{constraints['limit']} #{constraints['default']} #{constraints['comment']})
     end
 
-    def update
+    # 整形処理
+    #
+    # @params [Array] column_data
+    # @params [Symbol] method_name
+    # @params [Array] formatted_table_list
+    # @return [Array]
+    def format(column_data, method_name, formatted_table_list)
+      if ADD_METHODS_LIST.include?(method_name)
+        add(column_data, formatted_table_list)
+      elsif UPDATE_METHODS_LIST.include?(method_name)
+        update(column_data, formatted_table_list)
+      elsif DELETE_METHODS_LIST.include?(method_name)
+        delete(column_data, formatted_table_list)
+      end
+    end
+
+    def add
+    end
+
+    def update(column_data, formatted_table_list)
+      # p column_data
+      # p formatted_table_list
     end
 
     def delete
