@@ -5,7 +5,7 @@ require 'csv'
 
 module NickerPocker
 
-  MIGRATE_METHODS = %i(create_table change_column)
+  MIGRATE_METHODS = %i(create_table change_column add_column)
 
   class Command
     class << self
@@ -93,7 +93,8 @@ module NickerPocker
       # グルーピングしやすいように整形
       # ["change_column :xxx, :name, :string"]
       # => ["change_column :xxx", " :name", " :string"]
-      pattern = Regexp.new(".*?#{MIGRATE_METHODS.map(&:to_s).join('|')}.*")
+      pattern = Regexp.new(".*?[#{MIGRATE_METHODS.map(&:to_s).join('|')}].*")
+
       data_list.each_with_index do |data, index|
         pattern_match_list = data.map { |content| content.scan(pattern).join.split(',') }.reject(&:empty?)
 
