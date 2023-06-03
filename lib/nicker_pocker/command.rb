@@ -5,7 +5,7 @@ require 'csv'
 
 module NickerPocker
 
-  MIGRATE_METHODS = %i(create_table change_column add_column remove_column)
+  MIGRATE_METHODS = %i(create_table add_column change_column add_index remove_column)
 
   class Command
     class << self
@@ -48,6 +48,7 @@ module NickerPocker
       end
 
       temp_data_list.flatten!.select! { |row| target_data?(row) }.compact!
+
       data_list = necessary_data(temp_data_list)
 
       groups = Grouping.exec(data_list)
@@ -73,23 +74,36 @@ module NickerPocker
     # @params [Array] data_list
     # @return [Array]
     def necessary_data(temp_data_list)
-      pattern = Regexp.new(".*?[#{MIGRATE_METHODS.map(&:to_s).join('|')}].*")
       data_list = data_list(temp_data_list)
-      delete_val_list = []
+      necessary_data_list = []
+      pattern = MIGRATE_METHODS.map(&:to_s).join('|')
+      scan_pattern = Regexp.new(".*?[#{pattern}].*")
 
       # グルーピングしやすいように整形
       data_list.each_with_index do |data, index|
-        pattern_match_list = data.map { |content| content.scan(pattern).join.split(',') }.reject(&:empty?)
+        pattern_match_list = data.map do |content|
+          scan_list = content.scan(scan_pattern)
+          scan_list if scan_list.any?
+        end.compact
 
-        if pattern_match_list.first.length > 1
-          delete_val_list.push(data)
-          data_list.push(*pattern_match_list)
+        # 同じファイルに複数のmigrationメソッドが記載されている場合の対応
+        if pattern_match_list.length > 1
+          sub_list = []
+          pattern_match_list.each do |pattern_match|
+            if pattern_match.first.match?(/#{pattern}/)
+              sub_list.push([*pattern_match])
+            else
+              sub_list.last.push(*pattern_match)
+            end
+          end
+
+          necessary_data_list.push(sub_list)
+        else
+          necessary_data_list.push(pattern_match_list)
         end
       end
 
-      delete_val_list.each { |val| data_list.delete(val)}
-
-      data_list
+      necessary_data_list
     end
 
     def data_list(temp_data_list)

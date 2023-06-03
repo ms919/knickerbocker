@@ -31,12 +31,12 @@ module NickerPocker
     # @params [Array] data_list
     # @return [Hash]
     def grouping(data_list)
-      temp_group_list = data_list.map { |data| format_raw_data(data) }
+      temp_group_list = data_list.map { |data| data.map { |row| format_raw_data(row) } }.flatten
 
       groups = {}
       temp_group_list.each do |temp_group|
-        table_name = temp_group.keys.first
-        methods = temp_group.values.first
+        table_name = temp_group.first.first
+        methods = temp_group.first[1]
         method_name = methods.keys.first
 
         groups[table_name] = {} unless groups[table_name]
@@ -62,9 +62,11 @@ module NickerPocker
       target_method = target_method(data.first).to_sym
       return unless target_method
 
-      method_row = data.first.split(/\(|,|\s/)
-      table_name = method_row[1].sub(/^:/, '').to_sym
-      method_contents = data[1..].map { |content| content.strip.sub(/^:/, '') }
+      method_row = data.first.split(/,/)
+      table_name = method_row[0].split(/\s/)[1].sub(/^:/, '').to_sym
+
+      method_contents = data.length > 1 ? data[1..] : method_row[1..]
+      method_contents = method_contents.map { |content| content.strip.sub(/^:/, '') }.reject(&:empty?)
 
       methods[target_method] = method_contents
 

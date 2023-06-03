@@ -42,7 +42,7 @@ module NickerPocker
           if method_name == :create_table
             create_table_formatted_list = create_table_format(table_data)
 
-            formatted_table_list.push(*create_table_formatted_list).compact!
+            formatted_table_list.push(*create_table_formatted_list)
           else
             method_data = table_data[1][method_name]
             next unless method_data
@@ -78,7 +78,8 @@ module NickerPocker
       formatted_table_list.push(COLMN_HEADER_LIST)
 
       methods = table_data[1]
-      formatted_column_list = create_table(methods[:create_table].first)
+      columns_list = methods[:create_table].join.split(/t\./).reject(&:empty?)
+      formatted_column_list = create_table(columns_list)
 
       formatted_table_list.push(*formatted_column_list)
     end
@@ -94,7 +95,7 @@ module NickerPocker
         column_data_list = column.split(/\s|,|=>/)
         column_data_list.delete('')
 
-        column_type = column_data_list[0].sub(/^t\./, '')
+        column_type = column_data_list[0]
 
         if column_type == 'timestamps'
           timestamps_list = timestamps(column_data_list[1..])

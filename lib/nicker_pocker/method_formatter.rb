@@ -2,12 +2,17 @@
 module NickerPocker
   class MethodFormatter
     # フォーマット後の各データ格納列
+    COL_PK      = 0
+    COL_FK      = 1
+    COL_INDEX   = 2
+    COL_UNIQUE  = 3
     COL_TYPE    = 4
     COL_COLUMN  = 5
     COL_NULL    = 7
     COL_LIMIT   = 8
     COL_DEFAULT = 9
     COL_COMMENT = 10
+    COL_MEMO    = 12
 
     # フォーマット後のカラムデータの先頭行
     ROW_COLUMN_START = 3
@@ -64,8 +69,40 @@ module NickerPocker
     # @params [Array] formatted_table_list
     # @return [Array]
     def add_index(method_data_list, formatted_table_list)
-      p method_data_list
-      p formatted_table_list
+      column_formatted_list = formatted_table_list[ROW_COLUMN_START..]
+      change_list = []
+
+      method_data_list.each do |method_data|
+        index_column_list = [method_data.first]
+        option_list = method_data[1..]
+
+        if index_column_list.first.match(/^\[/)
+          index_end = method_data.index { |x| x.match(/\]/) }
+          index_column_list = method_data[..index_end]
+          option_list = method_data[index_end + 1..]
+        end
+
+        index_column_list.each do |index_column|
+          column_formatted_list.each_with_index do |column_formatted_data, index|
+            next unless index_column.include?(column_formatted_data[COL_COLUMN])
+
+            column_formatted_data[COL_INDEX] = '*'
+
+            if option_list.any?
+              if option_list.find { |option| option.match(/^unique/) }&.match(/true/i)
+                column_formatted_data[COL_UNIQUE] = '*'
+              end
+
+              column_formatted_data[COL_MEMO] = option_list.find { |option| option.match(/^name/) }&.gsub(/^name|\s|:|"/, '')
+            end
+
+            change_list.push({ (index + ROW_COLUMN_START) => column_formatted_data })
+            break
+          end
+        end
+      end
+
+      change_list
     end
 
     # remove_column用
