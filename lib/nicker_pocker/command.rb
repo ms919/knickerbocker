@@ -5,7 +5,7 @@ require 'csv'
 
 module NickerPocker
 
-  MIGRATE_METHODS = %i(create_table change_column add_column)
+  MIGRATE_METHODS = %i(create_table change_column add_column remove_column)
 
   class Command
     class << self
@@ -73,13 +73,33 @@ module NickerPocker
     # @params [Array] data_list
     # @return [Array]
     def necessary_data(temp_data_list)
+      pattern = Regexp.new(".*?[#{MIGRATE_METHODS.map(&:to_s).join('|')}].*")
+      data_list = data_list(temp_data_list)
+      delete_val_list = []
+
+      # グルーピングしやすいように整形
+      data_list.each_with_index do |data, index|
+        pattern_match_list = data.map { |content| content.scan(pattern).join.split(',') }.reject(&:empty?)
+
+        if pattern_match_list.first.length > 1
+          delete_val_list.push(data)
+          data_list.push(*pattern_match_list)
+        end
+      end
+
+      delete_val_list.each { |val| data_list.delete(val)}
+
+      data_list
+    end
+
+    def data_list(temp_data_list)
       data_list = []
       methods_contents_list = []
 
       # 使いやすく整形
       temp_data_list.each do |data|
        if /^def\s.*/.match(data)
-          data_list << methods_contents_list if methods_contents_list.any?
+          data_list.push(methods_contents_list) if methods_contents_list.any?
           methods_contents_list = []
        end
 
@@ -88,23 +108,7 @@ module NickerPocker
 
       # 不要データを除外
       data_list.reject! { |data| data.include?('def down') }
-      data_list = data_list.map { |data| data.reject { |x| /^def\s.*/.match(x) } }.reject(&:empty?)
-
-      # グルーピングしやすいように整形
-      # ["change_column :xxx, :name, :string"]
-      # => ["change_column :xxx", " :name", " :string"]
-      pattern = Regexp.new(".*?[#{MIGRATE_METHODS.map(&:to_s).join('|')}].*")
-
-      data_list.each_with_index do |data, index|
-        pattern_match_list = data.map { |content| content.scan(pattern).join.split(',') }.reject(&:empty?)
-
-        if pattern_match_list.first.length > 1
-          data_list.delete_at(index)
-          data_list.push(*pattern_match_list)
-        end
-      end
-
-      data_list
+      data_list.map { |data| data.reject { |x| /^def\s.*/.match(x) } }.reject(&:empty?)
     end
 
     # 出力
