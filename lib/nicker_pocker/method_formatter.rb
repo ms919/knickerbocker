@@ -1,5 +1,4 @@
 # 各メソッドごとの処理
-
 module NickerPocker
   class MethodFormatter
     # change_column用
@@ -41,9 +40,6 @@ module NickerPocker
 
         { (index + counter) => add_row }
       end
-    end
-
-    def add_index()
     end
 
     def change_table()

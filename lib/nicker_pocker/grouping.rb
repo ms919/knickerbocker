@@ -1,5 +1,4 @@
 # テーブルごとにグループ化
-
 module NickerPocker
   class Grouping
     class << self

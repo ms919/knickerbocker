@@ -1,5 +1,4 @@
 # 整形
-
 module NickerPocker
   class Formatter
     TABLE_HEADER_LIST = %W(table_name #{nil} #{nil} table_name(jp) #{nil} #{nil} created_by created_date updated_by updated_date table_memo)
@@ -98,13 +97,13 @@ module NickerPocker
         column_type = column_data_list[0].sub(/^t\./, '')
 
         if column_type == 'timestamps'
-          timestamps_list = get_timestamps(column_data_list[1..])
+          timestamps_list = timestamps(column_data_list[1..])
           result_list.push(*timestamps_list)
           next
         end
 
         column_name = column_data_list[1]&.sub(/^:/, '')
-        column_null, column_limit, column_default, column_comment = get_constraints(column_data_list[2..])
+        column_null, column_limit, column_default, column_comment = constraints(column_data_list[2..])
 
         result_list.push(%W(#{nil} #{nil} #{nil} #{nil} #{column_type} #{column_name} #{nil} #{column_null} #{column_limit} #{column_default} #{column_comment}))
       end
@@ -116,10 +115,10 @@ module NickerPocker
     #
     # @params [Array] timestamps_left_list
     # @return [Array]
-    def get_timestamps(timestamps_left_list)
+    def timestamps(timestamps_left_list)
       timestamps_list = []
 
-      column_null, column_limit, column_default, column_comment = get_constraints(timestamps_left_list)
+      column_null, column_limit, column_default, column_comment = constraints(timestamps_left_list)
 
       timestamps_list.push(%W(#{nil} #{nil} #{nil} #{nil} timestamp created_at #{nil} #{column_null} #{column_limit} #{column_default} #{column_comment}))
       timestamps_list.push(%W(#{nil} #{nil} #{nil} #{nil} timestamp updated_at #{nil} #{column_null} #{column_limit} #{column_default} #{column_comment}))
@@ -128,7 +127,7 @@ module NickerPocker
     # 各制約
     #
     # @params [Array] left_list
-    def get_constraints(left_list)
+    def constraints(left_list)
       return if left_list.nil? || left_list.empty?
 
       temp_constraint_list = left_list.map { |column_data| column_data.gsub(/:|'/, '') }
