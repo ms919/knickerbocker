@@ -70,6 +70,7 @@ module NickerPocker
     # @return [Array]
     def create_table_format(table_data)
       formatted_table_list = []
+
       # テーブル情報
       formatted_table_list.push(TABLE_HEADER_LIST)
       formatted_table_list.push([table_data[0]])
@@ -90,6 +91,9 @@ module NickerPocker
     # @return [Array]
     def create_table(columns_list)
       result_list = []
+
+      # Pキー追加
+      result_list.push(%W(* #{nil} #{nil} #{nil} integer id #{nil} false #{nil} #{nil} ID))
 
       columns_list.each do |column|
         column_data_list = column.split(/\s|,|=>/)
