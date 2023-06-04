@@ -87,9 +87,7 @@ module NickerPocker
     # @params [Array] methods_list
     # @return [Boolean]
     def target_table?(methods_list)
-      # drop_table がない・create_table がある
-      # TODO: rename_talbe をcrate_tableに変換する処理を入れておく（じゃないとcreate_table処理がなくてここで除外されるから）
-      !methods_list.include?(:drop_table) || methods_list.include?(:create_table)
+      !methods_list.include?(:drop_table)
     end
   end
 end

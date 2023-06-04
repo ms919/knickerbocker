@@ -5,7 +5,7 @@ require 'csv'
 
 module NickerPocker
 
-  MIGRATE_METHODS = %i(create_table add_column change_column add_index remove_column)
+  MIGRATE_METHODS = %i(rename_table create_table add_column change_column add_index remove_column)
 
   class Command
     class << self
@@ -37,16 +37,18 @@ module NickerPocker
     #
     # @return [Array]
     def read_data
-      temp_data_list = []
+      temp_data = {}
 
       Dir::foreach(@options[:input]) do |file_name|
         next if ['.', '..'].include?(file_name)
 
         File.open(@options[:input] + file_name) do |f|
-          temp_data_list.push(f.readlines.each(&:strip!))
+          temp_data[file_name.to_i] = f.readlines.each(&:strip!)
         end
       end
 
+      # migrationファイルの実行順に並べ替える
+      temp_data_list = temp_data.sort.to_h.values
       temp_data_list.flatten!.select! { |row| target_data?(row) }.compact!
 
       data_list = necessary_data(temp_data_list)

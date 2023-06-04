@@ -36,14 +36,30 @@ module NickerPocker
       formatted_list = []
       migrate_method = MethodFormatter.new
 
+      # リネームテーブル処理
+      rename_table_list = rename_table_list(groups)
+      rename_table_list.each do |rename_table|
+        old_val = groups[rename_table[1]]
+        # リネーム後のテーブル名に対するmigrateの有無
+        if old_val
+          groups[rename_table[1]] =
+            old_val.merge(groups.delete(rename_table[0])) { |key, old_v, new_v| old_v + new_v }
+        else
+          groups[rename_table[1]] = groups.delete(rename_table[0])
+        end
+      end
+
       groups.each do |table_data|
         formatted_table_list = []
         MIGRATE_METHODS.each do |method_name|
+          next if method_name == :rename_table
+
           if method_name == :create_table
             create_table_formatted_list = create_table_format(table_data)
 
             formatted_table_list.push(*create_table_formatted_list)
           else
+            # create_table, rename_table以外の処理
             method_data = table_data[1][method_name]
             next unless method_data
 
@@ -62,6 +78,20 @@ module NickerPocker
       end
 
       formatted_list
+    end
+
+    # テーブルのリネーム配列を返す
+    #
+    # @params [Hash] groups
+    # @return [Array]
+    def rename_table_list(groups)
+      temp_list =
+        groups.map do |table_data|
+          if table_data[1][:rename_table]
+            new_table_name = table_data[1][:rename_table].first.first.to_sym
+            [table_data[0], new_table_name]
+          end
+        end.compact
     end
 
     # テーブル作成用に整形した配列を返す
