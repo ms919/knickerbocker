@@ -46,10 +46,7 @@ module NickerPocker
       end
 
       # 出力対象を絞る
-      groups.each do |group|
-        group.delete(group[0]) unless target_table?(group[1].keys)
-      end
-
+      groups.each { |group| group.delete(group[0]) }
       groups
     end
 
@@ -80,14 +77,6 @@ module NickerPocker
       end
 
       return
-    end
-
-    # 出力対象のテーブル判定
-    #
-    # @params [Array] methods_list
-    # @return [Boolean]
-    def target_table?(methods_list)
-      !methods_list.include?(:drop_table)
     end
   end
 end

@@ -5,7 +5,7 @@ require 'csv'
 
 module NickerPocker
 
-  MIGRATE_METHODS = %i(rename_table create_table add_column change_column add_index remove_column)
+  MIGRATE_METHODS = %i(rename_table drop_table create_table add_column change_column add_index remove_column)
 
   class Command
     class << self
@@ -112,7 +112,7 @@ module NickerPocker
       data_list = []
       methods_contents_list = []
 
-      # 使いやすく整形
+      # def ごとの配列に格納
       temp_data_list.each do |data|
        if /^def\s.*/.match(data)
           data_list.push(methods_contents_list) if methods_contents_list.any?
@@ -121,6 +121,7 @@ module NickerPocker
 
        methods_contents_list.push(data)
       end
+      data_list.push(methods_contents_list) if methods_contents_list.any?
 
       # 不要データを除外
       data_list.reject! { |data| data.include?('def down') }

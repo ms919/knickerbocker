@@ -36,20 +36,9 @@ module NickerPocker
       formatted_list = []
       migrate_method = MethodFormatter.new
 
-      # リネームテーブル処理
-      rename_table_list = rename_table_list(groups)
-      rename_table_list.each do |rename_table|
-        old_val = groups[rename_table[1]]
-        # リネーム後のテーブル名に対するmigrateの有無
-        if old_val
-          groups[rename_table[1]] =
-            old_val.merge(groups.delete(rename_table[0])) { |key, old_v, new_v| old_v + new_v }
-        else
-          groups[rename_table[1]] = groups.delete(rename_table[0])
-        end
-      end
+      table_formatted_groups = table_formatted_groups(groups)
 
-      groups.each do |table_data|
+      table_formatted_groups.each do |table_data|
         formatted_table_list = []
         MIGRATE_METHODS.each do |method_name|
           next if method_name == :rename_table
@@ -80,11 +69,23 @@ module NickerPocker
       formatted_list
     end
 
-    # テーブルのリネーム配列を返す
+    # テーブル処理
     #
     # @params [Hash] groups
-    # @return [Array]
-    def rename_table_list(groups)
+    # @return [Hash]
+    def table_formatted_groups(groups)
+      # リネームテーブル処理
+      renamed_groups = rename_table(groups)
+
+      # テーブル削除処理
+      drop_table(renamed_groups)
+    end
+
+    # テーブルリネーム処理
+    #
+    # @params [Hash] groups
+    # @return [Hash]
+    def rename_table(groups)
       temp_list =
         groups.map do |table_data|
           if table_data[1][:rename_table]
@@ -92,6 +93,40 @@ module NickerPocker
             [table_data[0], new_table_name]
           end
         end.compact
+
+      temp_list.each do |rename_table|
+        old_val = groups[rename_table[1]]
+        # リネーム後のテーブル名に対するmigrateの有無
+        if old_val
+          groups[rename_table[1]] =
+            old_val.merge(groups.delete(rename_table[0])) { |key, old_v, new_v| old_v + new_v }
+        else
+          groups[rename_table[1]] = groups.delete(rename_table[0])
+        end
+      end
+
+      groups
+    end
+
+    # テーブル削除処理
+    #
+    # @params [Hash] groups
+    # @return [Hash]
+    def drop_table(groups)
+      # 削除対象tableリスト
+      drop_table_list = []
+      groups.each do |table_data|
+        next unless table_data[1][:drop_table]
+        drop_table_list.push(table_data[0])
+      end
+
+      return groups if drop_table_list.empty?
+
+      drop_table_list.each do |drop_table_name|
+        groups.delete(drop_table_name)
+      end
+
+      groups
     end
 
     # テーブル作成用に整形した配列を返す
