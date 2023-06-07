@@ -1,11 +1,11 @@
 # 指定オプションに基づいて処理実行
-
 require 'fileutils'
 require 'csv'
 
 module NickerPocker
-
-  MIGRATE_METHODS = %i(rename_table drop_table create_table add_column change_column add_index remove_column)
+  MIGRATE_METHODS =
+    Format::Operator::TABLE_METHODS +
+    Format::Operator::COLUMN_METHODS
 
   class Command
     class << self
@@ -54,7 +54,7 @@ module NickerPocker
       data_list = necessary_data(temp_data_list)
 
       groups = Grouping.exec(data_list)
-      Formatter.exec(groups)
+      Format::Operator.exec(groups)
     end
 
     # 対象データ判定
