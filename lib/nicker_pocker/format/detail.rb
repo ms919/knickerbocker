@@ -1,7 +1,7 @@
 # カラム整形
 module NickerPocker
   module Format
-    class Column
+    class Detail
       # フォーマット後の各データ格納列
       COL_PK      = 0
       COL_FK      = 1
@@ -23,36 +23,14 @@ module NickerPocker
       INDEX_TYPE          = 1
       INDEX_OPTIONS_START = 2
 
-      # change_column用
-      #
-      # @params [Array] method_data_list
-      # @params [Array] formatted_table_list
-      # @return [Array]
-      def change_column(method_data_list, formatted_table_list)
-        change_list = column_migrate_list(method_data_list)
-        column_formatted_list = formatted_table_list[ROW_COLUMN_START..]
-
-        change_list.map do |changes|
-          change_row = column_formatted_list.find { |row| row[COL_COLUMN] == changes[:column] }
-          target_index = column_formatted_list.index(change_row) + ROW_COLUMN_START
-          change_row[COL_TYPE] = changes[:type]
-          change_row[COL_NULL] = changes[:null] || change_row[COL_NULL]
-          change_row[COL_LIMIT] = changes[:limit] || change_row[COL_LIMIT]
-          change_row[COL_DEFAULT] = changes[:default] || change_row[COL_DEFAULT]
-          change_row[COL_COMMENT] = changes[:comment] || change_row[COL_COMMENT]
-
-          { target_index => change_row }
-        end
-      end
-
       # add_column用
       #
       # @params [Array] method_data_list
-      # @params [Array] formatted_table_list
+      # @params [Array] table_list
       # @return [Array]
-      def add_column(method_data_list, formatted_table_list)
+      def add_column(method_data_list, table_list)
         add_list = column_migrate_list(method_data_list)
-        index = formatted_table_list.index(formatted_table_list.last)
+        index = table_list.index(table_list.last)
 
         counter = 0
         add_list.map do |additions|
@@ -67,13 +45,35 @@ module NickerPocker
         end
       end
 
+      # change_column用
+      #
+      # @params [Array] method_data_list
+      # @params [Array] table_list
+      # @return [Array]
+      def change_column(method_data_list, table_list)
+        change_list = column_migrate_list(method_data_list)
+        column_formatted_list = table_list[ROW_COLUMN_START..]
+
+        change_list.map do |changes|
+          change_row = column_formatted_list.find { |row| row[COL_COLUMN] == changes[:column] }
+          target_index = column_formatted_list.index(change_row) + ROW_COLUMN_START
+          change_row[COL_TYPE] = changes[:type]
+          change_row[COL_NULL] = changes[:null] || change_row[COL_NULL]
+          change_row[COL_LIMIT] = changes[:limit] || change_row[COL_LIMIT]
+          change_row[COL_DEFAULT] = changes[:default] || change_row[COL_DEFAULT]
+          change_row[COL_COMMENT] = changes[:comment] || change_row[COL_COMMENT]
+
+          { target_index => change_row }
+        end
+      end
+
       # add_index用
       #
       # @params [Array] method_data_list
-      # @params [Array] formatted_table_list
+      # @params [Array] table_list
       # @return [Array]
-      def add_index(method_data_list, formatted_table_list)
-        column_formatted_list = formatted_table_list[ROW_COLUMN_START..]
+      def add_index(method_data_list, table_list)
+        column_formatted_list = table_list[ROW_COLUMN_START..]
         change_list = []
 
         method_data_list.each do |method_data|
@@ -112,11 +112,11 @@ module NickerPocker
       # remove_column用
       #
       # @params [Array] method_data_list
-      # @params [Array] formatted_table_list
+      # @params [Array] table_list
       # @return [Array]
-      def remove_column(method_data_list, formatted_table_list)
+      def remove_column(method_data_list, table_list)
         remove_column_list = method_data_list.map { |method_data| method_data[INDEX_COLUMN] }
-        column_formatted_list = formatted_table_list[ROW_COLUMN_START..]
+        column_formatted_list = table_list[ROW_COLUMN_START..]
 
         column_formatted_list.map.with_index do |column_formatted_data, index|
           if remove_column_list.include?(column_formatted_data[COL_COLUMN])

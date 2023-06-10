@@ -2,13 +2,14 @@
 module NickerPocker
   module Format
     class Operator
-      TABLE_METHODS = %i(
+      PROTOTYPE_METHODS = %i(
         rename_table
         drop_table
+        rename_column
         create_table
       ).freeze
 
-      COLUMN_METHODS = %i(
+      DETAIL_METHODS = %i(
         add_column
         change_column
         add_index
@@ -44,11 +45,11 @@ module NickerPocker
       # @params [Hash] groups
       # @return [Array]
       def formatted_list(groups)
-        table_formatter = Table.new
+        prototype_formatter = Prototype.new
 
-        # テーブル整形
-        table_groups = table_formatter.format_groups(groups)
-        table_list = table_formatter.table_list(table_groups)
+        # 定義書の原型をつくる
+        table_groups = prototype_formatter.format_groups(groups)
+        table_list = prototype_formatter.table_list(table_groups)
 
         # カラム整形
         format_column(table_groups, table_list)
@@ -60,17 +61,17 @@ module NickerPocker
       # @params [Array] table_list
       # @return [Array]
       def format_column(table_groups, table_list)
-        column_formatter = Column.new
+        detail_formatter = Detail.new
 
         table_groups.map do |table_data|
           target_table_list = table_list.find { |table| table[1].first == table_data.first }
 
-          COLUMN_METHODS.each do |method_name|
+          DETAIL_METHODS.each do |method_name|
             method_data = table_data[1][method_name]
             next unless method_data
 
             change_content_list =
-              column_formatter.send(method_name, method_data, target_table_list)
+              detail_formatter.send(method_name, method_data, target_table_list)
 
             change_content_list.each do |change_contents|
               index = change_contents.keys.first

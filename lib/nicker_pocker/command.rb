@@ -4,8 +4,8 @@ require 'csv'
 
 module NickerPocker
   MIGRATE_METHODS =
-    Format::Operator::TABLE_METHODS +
-    Format::Operator::COLUMN_METHODS
+    Format::Operator::PROTOTYPE_METHODS +
+    Format::Operator::DETAIL_METHODS
 
   class Command
     class << self

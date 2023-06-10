@@ -1,7 +1,7 @@
-# テーブル整形
+# 定義書の原型をつくる
 module NickerPocker
   module Format
-    class Table
+    class Prototype
       TABLE_HEADER_LIST = %W(
         table_name
         #{nil}
@@ -43,7 +43,10 @@ module NickerPocker
         renamed_groups = rename_table(groups)
 
         # テーブル削除処理
-        drop_table(renamed_groups)
+        dropped_groups = drop_table(renamed_groups)
+
+        # リネームカラム処理
+        rename_column(dropped_groups)
       end
 
       # テーブル作成用配列
@@ -102,6 +105,60 @@ module NickerPocker
         end
 
         groups
+      end
+
+      # rename_column用
+      #
+      # @params [Hash] table_groups
+      # @return [Hash]
+      def rename_column(table_groups)
+        rename_target_list = rename_target_list(table_groups)
+        return table_groups if rename_target_list.empty?
+
+        rename_target_list.each do |rename_target|
+          table_name = rename_target.keys.first
+          rename_val_list = rename_target.values.first
+
+          rename_targets = table_groups.delete(table_name)
+
+          key_arr = rename_targets.keys
+          values_arr = rename_targets.values
+
+          rename_val_list.each do |rename_val|
+            old_name = rename_val[0]
+
+            new_name = rename_val[1]
+            values_arr = values_arr.map do |val_arr|
+              val_arr.map { |val|
+                val.map { |v|
+                  if /^#{old_name}$/.match?(v)
+                    next v.gsub(/^#{old_name}$/, new_name)
+                  end
+                  v.gsub(/:#{old_name}$/, ":#{new_name}")
+                }
+              }
+            end
+          end
+          table_datas = {}
+          renamed_targets = [key_arr, values_arr].transpose.to_h
+          table_datas[table_name] = renamed_targets
+          table_groups.update(table_datas)
+        end
+
+        table_groups
+      end
+
+      # リネーム対象を返す
+      #
+      # @params [Hash]
+      # @return [Array]
+      def rename_target_list(table_groups)
+        table_groups.map do |table_group|
+          rename_list = table_group[1][:rename_column]
+          next unless rename_list
+
+          { table_group[0] => rename_list }
+        end.compact
       end
 
       # テーブル作成用に整形した配列を返す
