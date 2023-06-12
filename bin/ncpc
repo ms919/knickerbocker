@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require './lib/nicker_pocker/version'
-require './lib/nicker_pocker'
+require 'nicker_pocker/version'
+require 'nicker_pocker'
 
 Version = NickerPocker::VERSION
 
