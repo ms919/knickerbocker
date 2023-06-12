@@ -9,15 +9,13 @@ Version = NickerPocker::VERSION
 options = {}
 
 # コマンド定義
-ARGV.options do |opt|
-
+OptionParser.new do |opts|
   # バージョン
-  opt.on('-v', '--version') do
-    puts opt.ver
+  opts.on('-v', '--version') do
+    puts opts.ver
+    exit(0)
   end
-
-  opt.parse!
-end
+end.parse!
 
 # オプションに基づいて処理を実行
 NickerPocker::Command.exec(options)
