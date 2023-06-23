@@ -10,6 +10,11 @@ options = {}
 
 # コマンド定義
 OptionParser.new do |opts|
+  puts Dir.pwd
+  # 読み込み
+  # options[:input]
+  # 出力
+  # options[:output]
   # バージョン
   opts.on('-v', '--version') do
     puts opts.ver
