@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'optparse'
-require 'nicker_pocker/version'
-require 'nicker_pocker'
+require './lib/nicker_pocker/version'
+require './lib/nicker_pocker'
 
 Version = NickerPocker::VERSION
 
@@ -10,11 +10,6 @@ options = {}
 
 # コマンド定義
 OptionParser.new do |opts|
-  puts Dir.pwd
-  # 読み込み
-  # options[:input]
-  # 出力
-  # options[:output]
   # バージョン
   opts.on('-v', '--version') do
     puts opts.ver

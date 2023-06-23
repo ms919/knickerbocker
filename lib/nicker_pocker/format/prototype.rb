@@ -233,7 +233,12 @@ module NickerPocker
         return if left_list.nil? || left_list.empty?
 
         temp_constraint_list = left_list.map { |column_data| column_data.gsub(/:|'/, '') }
-        constraints = temp_constraint_list.each_slice(2).to_a.to_h
+        begin
+          constraints = temp_constraint_list.each_slice(2).to_a.to_h
+        rescue ArgumentError
+          puts "#{left_list} の書き込みに失敗しました"
+          return
+        end
 
         %W(#{constraints['null']} #{constraints['limit']} #{constraints['default']} #{constraints['comment']})
       end
