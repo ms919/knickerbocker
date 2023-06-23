@@ -233,7 +233,7 @@ module NickerPocker
         return if left_list.nil? || left_list.empty?
 
         temp_constraint_list = left_list.map { |column_data| column_data.gsub(/:|'/, '') }
-        constraints = temp_constraint_list.each_slice(2).to_h
+        constraints = temp_constraint_list.each_slice(2).to_a.to_h
 
         %W(#{constraints['null']} #{constraints['limit']} #{constraints['default']} #{constraints['comment']})
       end
