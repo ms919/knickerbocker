@@ -167,7 +167,9 @@ module NickerPocker
       # @return [Array]
       def create_table_format(table_data)
         formatted_table_list = []
-
+        p "---"
+p table_data
+p "---"
         # テーブル情報
         formatted_table_list.push(TABLE_HEADER_LIST)
         formatted_table_list.push([table_data[0]])
