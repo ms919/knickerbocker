@@ -31,7 +31,7 @@ module NickerPocker
     # @params [Array] data_list
     # @return [Hash]
     def grouping(data_list)
-      temp_group_list = data_list.map { |data| data.map { |row| format_raw_data(row) } }.flatten
+      temp_group_list = data_list.map { |data| data.map { |row| format_raw_data(row) } }.flatten.compact
 
       groups = {}
       temp_group_list.each do |temp_group|
@@ -66,6 +66,7 @@ module NickerPocker
       method_contents = method_contents.map { |content| content.strip.sub(/^:/, '') }.reject(&:empty?)
 
       methods[target_method] = method_contents
+      return if methods[:create_table].nil?
 
       tables[table_name] = methods
       tables
