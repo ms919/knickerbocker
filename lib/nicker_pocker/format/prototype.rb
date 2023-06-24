@@ -32,6 +32,25 @@ module NickerPocker
         column_memo
       ).freeze
 
+      CREATE_TABLE_METHOD_LIST = <<~EOF
+        timestamps|\
+        string|\
+        text|\
+        integer|\
+        bigint|\
+        float|\
+        decimal|\
+        numeric|\
+        datetime|\
+        timestamp|\
+        time|\
+        date|\
+        binary|\
+        boolean|\
+        json|\
+        virtual
+      EOF
+
       # グループ整形
       #
       # @params [Hash] groups
@@ -176,7 +195,8 @@ module NickerPocker
         formatted_table_list.push(COLMN_HEADER_LIST)
 
         methods = table_data[1]
-        columns_list = methods[:create_table].join.split(/t\./).reject(&:empty?)
+        temp_create_list = methods[:create_table][0].select { |x| x.match?(/t\.#{CREATE_TABLE_METHOD_LIST.chomp}/) }
+        columns_list = temp_create_list.join.split(/t\./).reject(&:empty?)
         formatted_column_list = create_table(columns_list)
 
         formatted_table_list.push(*formatted_column_list)
